@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard Mahjong - Papan Hobbies Cafe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .season-info {
+            font-size: 1.1em;
+            margin-top: 10px;
+            color: #ffd700;
+        }
+
+        .sync-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            margin-top: 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .sync-badge.connected {
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid #22c55e;
+            color: #fff;
+        }
+
+        .sync-badge.connecting {
+            background: rgba(251, 191, 36, 0.2);
+            border: 2px solid #fbbf24;
+            color: #fff;
+        }
+
+        .sync-badge.offline {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            color: #fff;
+        }
+
+        .btn-admin-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-admin-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #ccc;
+        }
+
+        .admin-panel {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .admin-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .admin-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn-admin {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-admin:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .input-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .input-section.active {
+            display: block;
+        }
+
+        .player-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-remove {
+            padding: 10px 15px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-add {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .podium-place {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 20px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .podium-place:hover {
+            transform: translateY(-10px);
+        }
+
+        .podium-1 {
+            order: 2;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        }
+
+        .podium-2 {
+            order: 1;
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+        }
+
+        .podium-3 {
+            order: 3;
+            background: linear-gradient(135deg, #cd7f32 0%, #e89b5a 100%);
+        }
+
+        .rank-badge {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            margin: 0 auto 15px;
+        }
+
+        .player-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .player-score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .player-stats {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .leaderboard {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        .leaderboard-title {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .leaderboard-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 120px 100px;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .leaderboard-row:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .rank-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .player-details {
+            flex: 1;
+        }
+
+        .player-name-row {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .player-stats-row {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .score-display {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: right;
+        }
+
+        .sessions-display {
+            text-align: center;
+            color: #666;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .empty-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+
+        .error-msg {
+            background: #fee;
+            color: #c00;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error-msg.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2em;
+            }
+
+            .podium {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .podium-place {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .leaderboard-row {
+                grid-template-columns: 50px 1fr;
+            }
+
+            .score-display,
+            .sessions-display {
+                grid-column: 2;
+                text-align: left;
+                margin-top: 5px;
+            }
+
+            .btn-admin-toggle {
+                position: static;
+                margin-top: 20px;
+            }
+
+            .player-row {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-remove {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="btn-admin-toggle" onclick="toggleAdmin()" id="adminToggle">🔐 Admin</button>
+            <div class="title">🀄 LEADERBOARD MAHJONG 🀄</div>
+            <div class="subtitle">Papan Hobbies Cafe</div>
+            <div class="season-info" id="seasonInfo">Loading...</div>
+            <div class="sync-badge connecting" id="syncBadge">
+                <span id="syncStatus">🔄 Connecting...</span>
+            </div>
+        </div>
+
+        <!-- Login Modal -->
+        <div class="modal" id="loginModal">
+            <div class="modal-content">
+                <div class="modal-title">Admin Login</div>
+                <div class="error-msg" id="loginError">Username atau password salah!</div>
+                <form onsubmit="login(event)">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('loginModal')">Batal</button>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="admin-title">⚙️ Admin Control Panel</div>
+            <div class="admin-buttons">
+                <button class="btn-admin" onclick="toggleInput()">➕ Input Sesi Game</button>
+                <button class="btn-admin" onclick="toggleSeason()">📅 Ganti Season</button>
+                <button class="btn-admin btn-danger" onclick="clearAll()">🗑️ Clear All Data</button>
+                <button class="btn-admin btn-danger" onclick="logout()">🚪 Logout</button>
+            </div>
+
+            <!-- Input Session -->
+            <div class="input-section" id="inputSection">
+                <h3 style="margin-bottom: 15px;">Input Sesi Game</h3>
+                <p style="color: #666; margin-bottom: 15px; font-size: 0.9em;">
+                    Masukkan nama dan point masing-masing player. Player dengan point tertinggi akan menang.
+                </p>
+                <form onsubmit="saveSession(event)">
+                    <div id="playersContainer">
+                        <div class="player-row">
+                            <input type="text" class="player-name" placeholder="Nama Player" required>
+                            <input type="number" class="player-score" placeholder="Point" required>
+                            <div></div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-add" onclick="addPlayerRow()">➕ Tambah Player</button>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="toggleInput()">Batal</button>
+                        <button type="submit" class="btn btn-primary">💾 Simpan</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Season Settings -->
+            <div class="input-section" id="seasonSection">
+                <h3 style="margin-bottom: 15px;">Pengaturan Season</h3>
+                <form onsubmit="saveSeason(event)">
+                    <div class="form-group">
+                        <label>Bulan</label>
+                        <select id="seasonMonth">
+                            <option value="1">Januari</option>
+                            <option value="2">Februari</option>
+                            <option value="3">Maret</option>
+                            <option value="4">April</option>
+                            <option value="5">Mei</option>
+                            <option value="6">Juni</option>
+                            <option value="7">Juli</option>
+                            <option value="8">Agustus</option>
+                            <option value="9">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tahun</label>
+                        <input type="number" id="seasonYear" min="2024" max="2030" required>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="toggleSeason()">Batal</button>
+                        <button type="submit" class="btn btn-primary">💾 Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <!-- Podium -->
+        <div class="podium" id="podium"></div>
+
+        <!-- Full Leaderboard -->
+        <div class="leaderboard">
+            <div class="leaderboard-title">📋 Full Rankings</div>
+            <div id="leaderboardList"></div>
+        </div>
+
+        <div class="footer">
+            <p>🀄 Papan Hobbies Cafe - Lebak Bulus 🀄</p>
+            <p style="margin-top: 10px;" id="lastUpdate">Last update: -</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Firebase configuration - YOUR CONFIG!
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkFgtBckWv-uKifm0Ij9z5PHAtTvg8Obw",
+            authDomain: "papan-3df9d.firebaseapp.com",
+            databaseURL: "https://papan-3df9d-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "papan-3df9d",
+            storageBucket: "papan-3df9d.firebasestorage.app",
+            messagingSenderId: "192543844230",
+            appId: "1:192543844230:web:270c31cdb4bd5218072e07"
+        };
+
+        let app, database;
+        let isFirebaseReady = false;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            isFirebaseReady = true;
+            console.log('✅ Firebase initialized');
+            updateSyncBadge('connected');
+        } catch (error) {
+            console.error('❌ Firebase error:', error);
+            updateSyncBadge('offline');
+        }
+
+        function updateSyncBadge(status) {
+            const badge = document.getElementById('syncBadge');
+            const statusText = document.getElementById('syncStatus');
+            
+            badge.className = 'sync-badge ' + status;
+            
+            if (status === 'connected') {
+                statusText.textContent = '✅ Real-time Sync Active';
+            } else if (status === 'connecting') {
+                statusText.textContent = '🔄 Connecting...';
+            } else {
+                statusText.textContent = '⚠️ Offline Mode';
+            }
+        }
+
+        window.firebaseDB = {
+            database,
+            ref,
+            set,
+            get,
+            onValue,
+            remove,
+            isReady: isFirebaseReady
+        };
+
+        window.updateSyncBadge = updateSyncBadge;
+    </script>
+
+    <script>
+        // Data
+        let players = {};
+        let isAdmin = false;
+
+        // Constants
+        const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+        // Initialize
+        function init() {
+            loadData();
+            loadSeason();
+            renderAll();
+        }
+
+        // Load/Save Data with Firebase
+        async function loadData() {
+            if (window.firebaseDB && window.firebaseDB.isReady) {
+                try {
+                    const db = window.firebaseDB.database;
+                    const playersRef = window.firebaseDB.ref(db, 'players');
+                    
+                    // Setup real-time listener
+                    window.firebaseDB.onValue(playersRef, (snapshot) => {
+                        const data = snapshot.val();
+                        players = data || {};
+                        renderAll();
+                        console.log('✅ Data synced from Firebase');
+                    });
+                } catch (error) {
+                    console.error('❌ Firebase load error:', error);
+                    loadDataLocal();
+                }
+            } else {
+                loadDataLocal();
+            }
+        }
+
+        function loadDataLocal() {
+            const saved = localStorage.getItem('mahjongPlayers');
+            players = saved ? JSON.parse(saved) : {};
+        }
+
+        async function saveData() {
+            if (window.firebaseDB && window.firebaseDB.isReady) {
+                try {
+                    const db = window.firebaseDB.database;
+                    const playersRef = window.firebaseDB.ref(db, 'players');
+                    await window.firebaseDB.set(playersRef, players);
+                    console.log('✅ Data saved to Firebase');
+                } catch (error) {
+                    console.error('❌ Firebase save error:', error);
+                    saveDataLocal();
+                }
+            } else {
+                saveDataLocal();
+            }
+            updateTimestamp();
+        }
+
+        function saveDataLocal() {
+            localStorage.setItem('mahjongPlayers', JSON.stringify(players));
+        }
+
+        // Season management
+        async function loadSeason() {
+            if (window.firebaseDB && window.firebaseDB.isReady) {
+                try {
+                    const db = window.firebaseDB.database;
+                    const seasonRef = window.firebaseDB.ref(db, 'season');
+                    
+                    window.firebaseDB.onValue(seasonRef, (snapshot) => {
+                        const season = snapshot.val();
+                        if (season) {
+                            document.getElementById('seasonMonth').value = season.month;
+                            document.getElementById('seasonYear').value = season.year;
+                        } else {
+                            setDefaultSeason();
+                        }
+                        updateSeasonDisplay();
+                    });
+                } catch (error) {
+                    loadSeasonLocal();
+                }
+            } else {
+                loadSeasonLocal();
+            }
+        }
+
+        function loadSeasonLocal() {
+            const saved = localStorage.getItem('mahjongSeason');
+            if (saved) {
+                const season = JSON.parse(saved);
+                document.getElementById('seasonMonth').value = season.month;
+                document.getElementById('seasonYear').value = season.year;
+            } else {
+                setDefaultSeason();
+            }
+            updateSeasonDisplay();
+        }
+
+        function setDefaultSeason() {
+            const now = new Date();
+            document.getElementById('seasonMonth').value = now.getMonth() + 1;
+            document.getElementById('seasonYear').value = now.getFullYear();
+        }
+
+        async function saveSeason(e) {
+            e.preventDefault();
+            const season = {
+                month: parseInt(document.getElementById('seasonMonth').value),
+                year: parseInt(document.getElementById('seasonYear').value)
+            };
+            
+            if (window.firebaseDB && window.firebaseDB.isReady) {
+                try {
+                    const db = window.firebaseDB.database;
+                    const seasonRef = window.firebaseDB.ref(db, 'season');
+                    await window.firebaseDB.set(seasonRef, season);
+                } catch (error) {
+                    localStorage.setItem('mahjongSeason', JSON.stringify(season));
+                }
+            } else {
+                localStorage.setItem('mahjongSeason', JSON.stringify(season));
+            }
+            
+            updateSeasonDisplay();
+            toggleSeason();
+            alert('Season berhasil diupdate!');
+        }
+
+        function updateSeasonDisplay() {
+            const month = parseInt(document.getElementById('seasonMonth').value);
+            const year = parseInt(document.getElementById('seasonYear').value);
+            document.getElementById('seasonInfo').textContent = `Season: ${MONTHS[month - 1]} ${year}`;
+        }
+
+        // Admin Functions
+        function toggleAdmin() {
+            if (isAdmin) {
+                logout();
+            } else {
+                document.getElementById('loginModal').classList.add('active');
+            }
+        }
+
+        function login(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'admin' && password === 'papan2026') {
+                isAdmin = true;
+                sessionStorage.setItem('isAdmin', 'true');
+                document.getElementById('adminPanel').classList.add('active');
+                document.getElementById('adminToggle').textContent = '🚪 Logout';
+                closeModal('loginModal');
+            } else {
+                document.getElementById('loginError').classList.add('active');
+            }
+        }
+
+        function logout() {
+            if (confirm('Logout dari admin?')) {
+                isAdmin = false;
+                sessionStorage.removeItem('isAdmin');
+                document.getElementById('adminPanel').classList.remove('active');
+                document.getElementById('adminToggle').textContent = '🔐 Admin';
+                document.getElementById('inputSection').classList.remove('active');
+                document.getElementById('seasonSection').classList.remove('active');
+            }
+        }
+
+        function checkAdmin() {
+            if (sessionStorage.getItem('isAdmin') === 'true') {
+                isAdmin = true;
+                document.getElementById('adminPanel').classList.add('active');
+                document.getElementById('adminToggle').textContent = '🚪 Logout';
+            }
+        }
+
+        // Modal Functions
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.getElementById('loginError').classList.remove('active');
+        }
+
+        // Toggle Functions
+        function toggleInput() {
+            const section = document.getElementById('inputSection');
+            section.classList.toggle('active');
+            if (!section.classList.contains('active')) {
+                resetInputForm();
+            }
+        }
+
+        function toggleSeason() {
+            document.getElementById('seasonSection').classList.toggle('active');
+        }
+
+        // Player Input
+        function addPlayerRow() {
+            const container = document.getElementById('playersContainer');
+            const row = document.createElement('div');
+            row.className = 'player-row';
+            row.innerHTML = `
+                <input type="text" class="player-name" placeholder="Nama Player" required>
+                <input type="number" class="player-score" placeholder="Point" required>
+                <button type="button" class="btn-remove" onclick="removePlayerRow(this)">🗑️</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removePlayerRow(btn) {
+            const container = document.getElementById('playersContainer');
+            if (container.children.length > 1) {
+                btn.parentElement.remove();
+            } else {
+                alert('Minimal harus ada 1 player!');
+            }
+        }
+
+        function resetInputForm() {
+            const container = document.getElementById('playersContainer');
+            container.innerHTML = `
+                <div class="player-row">
+                    <input type="text" class="player-name" placeholder="Nama Player" required>
+                    <input type="number" class="player-score" placeholder="Point" required>
+                    <div></div>
+                </div>
+            `;
+        }
+
+        // Save Session
+        async function saveSession(e) {
+            e.preventDefault();
+            
+            const names = document.querySelectorAll('.player-name');
+            const scores = document.querySelectorAll('.player-score');
+            
+            let maxScore = -Infinity;
+            let winner = '';
+            const sessionData = [];
+
+            for (let i = 0; i < names.length; i++) {
+                const name = names[i].value.trim();
+                const score = parseInt(scores[i].value);
+                
+                sessionData.push({ name, score });
+                
+                if (score > maxScore) {
+                    maxScore = score;
+                    winner = name;
+                }
+            }
+
+            // Update players
+            sessionData.forEach(({ name, score }) => {
+                if (!players[name]) {
+                    players[name] = {
+                        bestScore: score,
+                        sessions: 0,
+                        wins: 0,
+                        allScores: []
+                    };
+                }
+
+                players[name].sessions++;
+                players[name].allScores.push(score);
+
+                if (score > players[name].bestScore) {
+                    players[name].bestScore = score;
+                }
+
+                if (name === winner) {
+                    players[name].wins++;
+                }
+            });
+
+            await saveData();
+            toggleInput();
+            
+            alert(`✅ Sesi berhasil disimpan!\n🏆 Pemenang: ${winner} (${formatNumber(maxScore)} point)`);
+        }
+
+        // Clear All
+        async function clearAll() {
+            if (confirm('Hapus SEMUA data? Tidak bisa dibatalkan!')) {
+                players = {};
+                
+                if (window.firebaseDB && window.firebaseDB.isReady) {
+                    try {
+                        const db = window.firebaseDB.database;
+                        const playersRef = window.firebaseDB.ref(db, 'players');
+                        await window.firebaseDB.remove(playersRef);
+                    } catch (error) {
+                        console.error('Clear error:', error);
+                    }
+                }
+                
+                localStorage.removeItem('mahjongPlayers');
+                renderAll();
+                alert('Semua data berhasil dihapus!');
+            }
+        }
+
+        // Render Functions
+        function renderAll() {
+            const leaderboard = getLeaderboard();
+            renderStats(leaderboard);
+            renderPodium(leaderboard);
+            renderList(leaderboard);
+        }
+
+        function getLeaderboard() {
+            return Object.entries(players)
+                .map(([name, data]) => ({
+                    name,
+                    bestScore: data.bestScore,
+                    sessions: data.sessions,
+                    wins: data.wins,
+                    winRate: data.sessions > 0 ? Math.round((data.wins / data.sessions) * 100) : 0
+                }))
+                .sort((a, b) => b.bestScore - a.bestScore);
+        }
+
+        function renderStats(leaderboard) {
+            const total = leaderboard.reduce((sum, p) => sum + p.sessions, 0);
+            const best = leaderboard.length > 0 ? leaderboard[0] : null;
+
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon">🎮</div>
+                    <div class="stat-value">${total}</div>
+                    <div class="stat-label">Total Sesi</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-value">${best ? formatNumber(best.bestScore) : 0}</div>
+                    <div class="stat-label">Highest Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value">${leaderboard.length}</div>
+                    <div class="stat-label">Active Players</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👑</div>
+                    <div class="stat-value">${best ? best.name : '-'}</div>
+                    <div class="stat-label">Leader</div>
+                </div>
+            `;
+        }
+
+        function renderPodium(leaderboard) {
+            const podium = document.getElementById('podium');
+            
+            if (leaderboard.length === 0) {
+                podium.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🀄</div>
+                        <h2>Belum ada data</h2>
+                        <p>${isAdmin ? 'Klik "Input Sesi Game" untuk mulai!' : 'Season akan dimulai segera!'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            if (leaderboard.length >= 2) {
+                html += renderPodiumPlace(leaderboard[1], 2, 'podium-2');
+            }
+            
+            if (leaderboard.length >= 1) {
+                html += renderPodiumPlace(leaderboard[0], 1, 'podium-1');
+            }
+            
+            if (leaderboard.length >= 3) {
+                html += renderPodiumPlace(leaderboard[2], 3, 'podium-3');
+            }
+
+            podium.innerHTML = html;
+        }
+
+        function renderPodiumPlace(player, rank, className) {
+            return `
+                <div class="podium-place ${className}">
+                    <div class="rank-badge">${rank}</div>
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-score">${formatNumber(player.bestScore)}</div>
+                    <div style="font-size: 0.9em; color: #666; margin-top: 5px;">Best Score</div>
+                    <div class="player-stats">
+                        🎮 ${player.sessions} Sesi | 🏆 ${player.wins} Wins<br>
+                        📊 Win Rate: ${player.winRate}%
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderList(leaderboard) {
+            const list = document.getElementById('leaderboardList');
+            
+            if (leaderboard.length <= 3) {
+                list.innerHTML = '';
+                return;
+            }
+
+            const remaining = leaderboard.slice(3);
+            list.innerHTML = remaining.map((player, i) => `
+                <div class="leaderboard-row">
+                    <div class="rank-number">${i + 4}</div>
+                    <div class="player-info">
+                        <div class="player-avatar">${getInitials(player.name)}</div>
+                        <div class="player-details">
+                            <div class="player-name-row">${player.name}</div>
+                            <div class="player-stats-row">
+                                Win Rate: ${player.winRate}% • ${player.wins} Wins dari ${player.sessions} Sesi
+                            </div>
+                        </div>
+                    </div>
+                    <div class="score-display">${formatNumber(player.bestScore)}</div>
+                    <div class="sessions-display">${player.sessions} Sesi</div>
+                </div>
+            `).join('');
+        }
+
+        // Utility Functions
+        function formatNumber(num) {
+            return num.toLocaleString('id-ID');
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            const formatted = now.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('lastUpdate').textContent = `Last update: ${formatted}`;
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+            checkAdmin();
+            updateTimestamp();
+        });
+    </script>
+</body>
+</html>
